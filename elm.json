@@ -1,6 +1,6 @@
 {
     "type": "package",
-    "name": "the-sett/elm-multi-dict",
+    "name": "the-sett/elm-one-many",
     "summary": "A one-to-many data structure implementation for Elm.",
     "license": "BSD-3-Clause",
     "version": "1.0.0",
