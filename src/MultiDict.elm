@@ -11,13 +11,20 @@ values are added to or removed from the data structyre is managed for you.
 -}
 
 import Dict exposing (Dict)
-import EverySet exposing (EverySet)
+import DictSet exposing (DictSet)
 
 
 {-| The type of multi dicts from comparable keys to sets of values.
 -}
-type alias MultiDict comparable value =
-    Dict comparable (EverySet value)
+type alias MultiDict comparable value comparable1 =
+    { vfun : value -> comparable1
+    , dict : Dict comparable (DictSet comparable1 value)
+    }
+
+
+empty : (value -> comparable1) -> MultiDict comparable value comparable1
+empty vfun =
+    { vfun = vfun, dict = Dict.empty }
 
 
 {-| Adds a key-value pair into the dictionary. It is added to the set of values
@@ -26,16 +33,16 @@ already associated with that key.
 insert :
     comparable
     -> value
-    -> MultiDict comparable value
-    -> MultiDict comparable value
-insert k v dict =
+    -> MultiDict comparable value comparable1
+    -> MultiDict comparable value comparable1
+insert k v { vfun, dict } =
     let
         set =
             Dict.get k dict
-                |> Maybe.withDefault EverySet.empty
-                |> EverySet.insert v
+                |> Maybe.withDefault (DictSet.empty vfun)
+                |> DictSet.insert v
     in
-        Dict.insert k set dict
+    { vfun = vfun, dict = Dict.insert k set dict }
 
 
 {-| Removes a key-value pair from the dictionary. It is removed from the set of values
@@ -44,19 +51,20 @@ associated with the key.
 remove :
     comparable
     -> value
-    -> MultiDict comparable value
-    -> MultiDict comparable value
-remove k v dict =
+    -> MultiDict comparable value comparable1
+    -> MultiDict comparable value comparable1
+remove k v { vfun, dict } =
     let
         set =
             Dict.get k dict
-                |> Maybe.withDefault EverySet.empty
-                |> EverySet.remove v
+                |> Maybe.withDefault (DictSet.empty vfun)
+                |> DictSet.remove v
     in
-        if EverySet.isEmpty set then
-            Dict.remove k dict
-        else
-            Dict.insert k set dict
+    if DictSet.isEmpty set then
+        { vfun = vfun, dict = Dict.remove k dict }
+
+    else
+        { vfun = vfun, dict = Dict.insert k set dict }
 
 
 {-| Gets the set of values associated with a key, or `Nothing` if there is no
@@ -64,19 +72,20 @@ set of values.
 -}
 get :
     comparable
-    -> MultiDict comparable value
-    -> Maybe (EverySet value)
-get k dict =
+    -> MultiDict comparable value comparable1
+    -> Maybe (DictSet comparable1 value)
+get k { vfun, dict } =
     let
         maybeSet =
             Dict.get k dict
     in
-        case maybeSet of
-            Nothing ->
+    case maybeSet of
+        Nothing ->
+            Nothing
+
+        Just set ->
+            if DictSet.isEmpty set then
                 Nothing
 
-            Just set ->
-                if EverySet.isEmpty set then
-                    Nothing
-                else
-                    Just set
+            else
+                Just set
