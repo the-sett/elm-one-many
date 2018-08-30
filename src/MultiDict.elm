@@ -1,4 +1,4 @@
-module MultiDict exposing (MultiDict, insert, remove, get)
+module MultiDict exposing (MultiDict, insert, remove, get, empty)
 
 {-| MultiDict implements a one-to-many relationship, between `comparable` keys
 and `Set`s of values. Each key may be associated with zero or many values, compared
@@ -6,7 +6,7 @@ with a `Dict` which associated each key with just one value. Its implementation 
 a `Dict` of `Set`s, but the overhead of creating new sets or removing empty sets as
 values are added to or removed from the data structyre is managed for you.
 
-@docs MultiDict, insert, remove, get
+@docs MultiDict, insert, remove, get, empty
 
 -}
 
@@ -22,6 +22,8 @@ type alias MultiDict comparable value comparable1 =
     }
 
 
+{-| Creates an empty multi-dict.
+-}
 empty : (value -> comparable1) -> MultiDict comparable value comparable1
 empty vfun =
     { vfun = vfun, dict = Dict.empty }
